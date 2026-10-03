@@ -1360,10 +1360,21 @@
         .back-link { display: inline-flex; align-items: center; gap: 0.5rem; color: #00ff88; text-decoration: none; font-weight: 600; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; margin-bottom: 2rem; transition: all 0.3s ease; }
         .back-link:hover { color: #ffffff; text-shadow: 0 0 10px rgba(0, 255, 136, 0.5); }
 
+        /* Video badge on thumbnails */
+        .gallery-item .play-badge {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            background: rgba(10, 14, 39, 0.75); border: 2px solid #00ff88; color: #00ff88; font-size: 1.1rem; padding-left: 3px;
+            transition: all 0.3s ease; pointer-events: none;
+        }
+        .gallery-item:hover .play-badge { background: #00ff88; color: #0a0e27; box-shadow: 0 0 20px rgba(0, 255, 136, 0.3); }
+        .gallery-item.missing .play-badge { display: none; }
+
         /* Lightbox */
         .lightbox { position: fixed; inset: 0; z-index: 2000; background: rgba(5, 8, 25, 0.96); display: none; align-items: center; justify-content: center; flex-direction: column; padding: 3.5rem 1rem 1rem; }
         .lightbox.open { display: flex; }
         .lightbox img { max-width: 100%; max-height: 78vh; border: 1px solid rgba(0, 255, 136, 0.3); border-radius: 2px; object-fit: contain; }
+        .lightbox video { max-width: 100%; max-height: 78vh; border: 1px solid rgba(0, 255, 136, 0.3); border-radius: 2px; background: #000; }
         .lightbox-caption { margin-top: 1rem; color: #e0e0e0; text-align: center; font-size: 0.9rem; max-width: 700px; }
         .lightbox-caption small { display: block; color: #00ff88; margin-top: 0.3rem; text-transform: uppercase; letter-spacing: 1px; }
         .lb-btn { position: absolute; background: rgba(10, 14, 39, 0.8); border: 2px solid #00ff88; color: #00ff88; width: 44px; height: 44px; border-radius: 2px; cursor: pointer; font-size: 1.1rem; transition: all 0.3s ease; }
@@ -1380,6 +1391,8 @@
         body.light-theme .gallery-item { background: white; border-color: rgba(0, 0, 0, 0.1); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); }
         body.light-theme .gallery-item:hover { box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12); }
         body.light-theme .gallery-item.missing::before { color: #000; }
+        body.light-theme .gallery-item .play-badge { border-color: #000; color: #000; background: rgba(255, 255, 255, 0.85); }
+        body.light-theme .gallery-item:hover .play-badge { background: #000; color: white; box-shadow: none; }
         body.light-theme .back-link { color: #000; }
         body.light-theme .back-link:hover { color: #333; text-shadow: none; }
         @media (max-width: 768px) {
@@ -1440,6 +1453,7 @@
         <button class="lb-btn lb-prev" id="lbPrev" aria-label="Previous photo"><i class="fas fa-chevron-left"></i></button>
         <button class="lb-btn lb-next" id="lbNext" aria-label="Next photo"><i class="fas fa-chevron-right"></i></button>
         <img id="lbImg" src="" alt="">
+        <video id="lbVideo" controls playsinline preload="none" hidden></video>
         <div class="lightbox-caption" id="lbCaption"></div>
     </div>
 
@@ -1456,6 +1470,10 @@
            file:     the file name (same name in img/gallery/thumbs/ and img/gallery/full/)
            caption:  short text shown in the viewer (can be left as "")
            category: "field" (Field Work), "personal" (Personal) or "fun" (Fun)
+
+           VIDEOS (hosted on Cloudinary): use  video: "PUBLIC_ID"  instead of  file:
+             { video: "VID-20240928-WA0094_qd74op", caption: "", category: "fun" },
+           Optional: poster: 3   (second of the video used as the thumbnail, default 1)
            ========================================================== */
         const PHOTOS = [
             { file: "field-01.jpg",    caption: "Drone survey - sample caption", category: "field" },
@@ -1464,11 +1482,12 @@
             { file: "personal-01.jpg", caption: "Out cycling",                    category: "personal" },
             { file: "Paul Osakue picture.jpg", caption: "",                               category: "personal" },
             { file: "personal-03.jpg", caption: "",                               category: "personal" },
-			{ file: "picsss (1).jpg", caption: "Hanging out REMA homecoming", category: "fun" },
-			{ file: "picsss (2).jpg", caption: "Birthday hangout", category: "fun" },
+            { video: "VID-20240928-WA0094_qd74op", caption: "", category: "fun" },
             // Add FUN photos below, one line each, like this (remove the // at the start):
             // { file: "friends-01.jpg", caption: "Hanging out", category: "fun" },
         ];
+        const CLOUD_NAME = "dl4b0afgg";
+        const CLD = "https://res.cloudinary.com/" + CLOUD_NAME + "/video/upload/";
         const THUMB_DIR = "img/gallery/thumbs/";
         const FULL_DIR  = "img/gallery/full/";
         const LABELS = { field: "Field Work", personal: "Personal", fun: "Fun" };
@@ -1488,7 +1507,9 @@
                 btn.className = 'gallery-item';
                 btn.setAttribute('aria-label', p.caption || ('Open photo ' + (i + 1)));
                 const img = document.createElement('img');
-                img.src = THUMB_DIR + p.file;
+                img.src = p.video
+                    ? CLD + 'so_' + (p.poster || 1) + ',w_500,h_375,c_fill,q_auto,f_jpg/' + p.video + '.jpg'
+                    : THUMB_DIR + p.file;
                 img.alt = p.caption || LABELS[p.category];
                 img.loading = 'lazy';
                 img.decoding = 'async';
@@ -1497,6 +1518,12 @@
                 tag.className = 'tag';
                 tag.innerHTML = '<span>&gt;</span> ' + LABELS[p.category];
                 btn.append(img, tag);
+                if (p.video) {
+                    const badge = document.createElement('div');
+                    badge.className = 'play-badge';
+                    badge.innerHTML = '<i class="fas fa-play"></i>';
+                    btn.appendChild(badge);
+                }
                 btn.addEventListener('click', () => openLightbox(i));
                 grid.appendChild(btn);
             });
@@ -1516,20 +1543,39 @@
         /* Lightbox */
         const lb = document.getElementById('lightbox');
         const lbImg = document.getElementById('lbImg');
+        const lbVideo = document.getElementById('lbVideo');
         const lbCap = document.getElementById('lbCaption');
 
         function showLightbox() {
             const p = visible[lbIndex];
-            lbImg.src = FULL_DIR + p.file;
-            lbImg.alt = p.caption || LABELS[p.category];
+            stopVideo();
+            if (p.video) {
+                lbImg.hidden = true;
+                lbImg.removeAttribute('src');
+                lbVideo.hidden = false;
+                lbVideo.poster = CLD + 'so_' + (p.poster || 1) + ',w_1000,q_auto,f_jpg/' + p.video + '.jpg';
+                lbVideo.src = CLD + 'q_auto,f_mp4/' + p.video + '.mp4';
+                lbVideo.load();
+            } else {
+                lbVideo.hidden = true;
+                lbImg.hidden = false;
+                lbImg.src = FULL_DIR + p.file;
+                lbImg.alt = p.caption || LABELS[p.category];
+            }
             lbCap.innerHTML = '';
             if (p.caption) lbCap.append(document.createTextNode(p.caption));
             const small = document.createElement('small');
             small.textContent = LABELS[p.category] + '  ·  ' + (lbIndex + 1) + ' / ' + visible.length;
             lbCap.appendChild(small);
         }
+        function stopVideo() {
+            lbVideo.pause();
+            lbVideo.removeAttribute('src');
+            lbVideo.removeAttribute('poster');
+            lbVideo.load();
+        }
         function openLightbox(i) { lbIndex = i; showLightbox(); lb.classList.add('open'); document.body.style.overflow = 'hidden'; }
-        function closeLightbox() { lb.classList.remove('open'); lbImg.src = ''; document.body.style.overflow = ''; }
+        function closeLightbox() { lb.classList.remove('open'); stopVideo(); lbImg.removeAttribute('src'); document.body.style.overflow = ''; }
         function step(d) { lbIndex = (lbIndex + d + visible.length) % visible.length; showLightbox(); }
 
         document.getElementById('lbClose').addEventListener('click', closeLightbox);
