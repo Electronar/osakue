@@ -1425,6 +1425,7 @@
                     <button class="filter-btn active" data-filter="all">All</button>
                     <button class="filter-btn" data-filter="field">Field Work</button>
                     <button class="filter-btn" data-filter="personal">Personal</button>
+                    <button class="filter-btn" data-filter="fun">Fun</button>
                 </div>
                 <div class="gallery-count" id="galleryCount"></div>
             </div>
@@ -1454,7 +1455,7 @@
            ADD YOUR PHOTOS HERE - one line per photo.
            file:     the file name (same name in img/gallery/thumbs/ and img/gallery/full/)
            caption:  short text shown in the viewer (can be left as "")
-           category: "field" (Field Work) or "personal" (Personal)
+           category: "field" (Field Work), "personal" (Personal) or "fun" (Fun)
            ========================================================== */
         const PHOTOS = [
             { file: "field-01.jpg",    caption: "Drone survey - sample caption", category: "field" },
@@ -1462,11 +1463,13 @@
             { file: "laser_on_patient.jpg",    caption: "",                               category: "field" },
             { file: "personal-01.jpg", caption: "Out cycling",                    category: "personal" },
             { file: "Paul Osakue picture.jpg", caption: "",                               category: "personal" },
-            { file: "personal-03.jpg", caption: "",                               category: "personal" }
+            { file: "personal-03.jpg", caption: "",                               category: "personal" },
+            // Add FUN photos below, one line each, like this (remove the // at the start):
+            // { file: "friends-01.jpg", caption: "Hanging out", category: "fun" },
         ];
         const THUMB_DIR = "img/gallery/thumbs/";
         const FULL_DIR  = "img/gallery/full/";
-        const LABELS = { field: "Field Work", personal: "Personal" };
+        const LABELS = { field: "Field Work", personal: "Personal", fun: "Fun" };
 
         const grid = document.getElementById('galleryGrid');
         const emptyMsg = document.getElementById('galleryEmpty');
